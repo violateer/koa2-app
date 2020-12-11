@@ -37,15 +37,6 @@ router.post('/register', async ctx => {
             avatar
         });
         
-        // 验证密码
-        // await bcrypt.genSalt(10, (err, salt) => {
-        //     bcrypt.hash(password, salt, (err, encryptPassword) => {
-        //         bcrypt.compare(password, encryptPassword, (err, res) => {
-        //             console.log(res);
-        //         });
-        //     });
-        // });
-        
         // 存储到数据库
         await newUser.save()
                      .then(user => {
@@ -56,6 +47,32 @@ router.post('/register', async ctx => {
                          ctx.status = 500;
                          ctx.body = { err: '服务器发繁忙' };
                      });
+    }
+});
+
+/**
+ * @route POST api/v1/users/login
+ * @desc 登录接口地址  返回token
+ * @assec 接口是公开的
+ */
+router.post('/login', async ctx => {
+    const { username, password, email } = ctx.request.body;
+    // 查询
+    const findResult = await User.find({ email });
+    const user = findResult[0];
+    if (findResult.length === 0) {
+        ctx.status = 404;
+        ctx.body = { email: '用户不存在!' };
+    } else {
+        // 验证密码
+        const result = tools.checkPassword(password, user.password);
+        if (result) {
+            ctx.status = 200;
+            ctx.body = { success: true };
+        } else {
+            ctx.status = 400;
+            ctx.body = { password: '密码错误' };
+        }
     }
 });
 
