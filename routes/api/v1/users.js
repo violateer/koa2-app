@@ -1,4 +1,5 @@
 import Router from 'koa-router';
+import User from '../../../modules/User';
 
 const router = new Router();
 
