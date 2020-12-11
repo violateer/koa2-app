@@ -1,5 +1,17 @@
-const Koa = require('koa');
-const Router = require('koa-router');
+import Koa from 'koa';
+import Router from 'koa-router';
+import mongoose from 'mongoose';
+import password from './localInformation';
+
+// 连接数据库
+mongoose
+    .connect(`mongodb+srv://violateer:${password}@cluster0.wngjb.mongodb.net/<dbname>?retryWrites=true&w=majority`)
+    .then(() => {
+        console.log('MongoDb Connected');
+    })
+    .catch(err => {
+        console.log(err);
+    });
 
 const app = new Koa();
 const router = new Router();

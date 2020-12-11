@@ -2,6 +2,7 @@
   "name": "koa2-app",
   "version": "1.0.0",
   "main": "app.js",
+  "type": "module",
   "scripts": {
     "start": "node-dev app.js"
   },
@@ -9,6 +10,7 @@
   "dependencies": {
     "koa": "^2.13.0",
     "koa-router": "^10.0.0",
+    "mongoose": "^5.11.6",
     "node-dev": "^6.2.0"
   }
 }
