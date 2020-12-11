@@ -1,6 +1,7 @@
 import Router from 'koa-router';
 import User from '../../../modules/User';
 import bcrypt from 'bcryptjs';
+import gravatar from 'gravatar';
 
 const router = new Router();
 
@@ -28,10 +29,12 @@ router.post('/register', async ctx => {
         ctx.status = 500;
         ctx.body = { email: '邮箱已被占用' };
     } else {
+        const avatar = gravatar.url(email, { s: '200', r: 'pg', d: 'mm' });
         const newUser = new User({
             username,
             password,
-            email
+            email,
+            avatar
         });
         
         // 验证密码
@@ -50,7 +53,6 @@ router.post('/register', async ctx => {
                 newUser.password = encryptPassword;
             });
         });
-        
         // 存储到数据库
         await newUser.save()
                      .then(user => {
