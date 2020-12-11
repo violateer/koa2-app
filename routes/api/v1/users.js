@@ -27,8 +27,14 @@ router.post('/register', async ctx => {
     /** @type {string[]} findResult */
     const findResult = await User.find({ email });
     if (findResult.length > 0) {
-        ctx.status = 500;
-        ctx.body = { email: '邮箱已被占用' };
+        ctx.status = 422;
+        ctx.body = {
+            data: 'error',
+            meta: {
+                msg: '邮箱已被占用',
+                status: 422
+            }
+        };
     } else {
         const avatar = gravatar.url(email, { s: '200', r: 'pg', d: 'mm' });
         const newUser = new User({
@@ -42,11 +48,23 @@ router.post('/register', async ctx => {
         await newUser.save()
                      .then(user => {
                          ctx.status = 200;
-                         ctx.body = user;
+                         ctx.body = {
+                             data: user,
+                             meta: {
+                                 msg: '注册成功',
+                                 status: 200
+                             }
+                         };
                      })
                      .catch(() => {
                          ctx.status = 500;
-                         ctx.body = { err: '服务器发繁忙' };
+                         ctx.body = {
+                             data: 'error',
+                             meta: {
+                                 msg: '未知错误',
+                                 status: 500
+                             }
+                         };
                      });
     }
 });
@@ -64,7 +82,13 @@ router.post('/login', async ctx => {
     const user = findResult[0];
     if (findResult.length === 0) {
         ctx.status = 404;
-        ctx.body = { email: '用户不存在!' };
+        ctx.body = {
+            meta: {
+                data: 'error',
+                msg: '用户不存在',
+                status: 404
+            }
+        };
     } else {
         // 验证密码
         const result = tools.checkPassword(password, user.password);
@@ -72,8 +96,14 @@ router.post('/login', async ctx => {
             ctx.status = 200;
             ctx.body = { success: true };
         } else {
-            ctx.status = 400;
-            ctx.body = { password: '密码错误' };
+            ctx.status = 403;
+            ctx.body = {
+                data: 'error',
+                meta: {
+                    msg: '密码错误',
+                    status: 403
+                }
+            };
         }
     }
 });
