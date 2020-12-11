@@ -1,6 +1,6 @@
 import Router from 'koa-router';
 import User from '../../../modules/User';
-import bcrypt from 'bcryptjs';
+import tools from '../../../config/tools';
 import gravatar from 'gravatar';
 
 const router = new Router();
@@ -32,7 +32,7 @@ router.post('/register', async ctx => {
         const avatar = gravatar.url(email, { s: '200', r: 'pg', d: 'mm' });
         const newUser = new User({
             username,
-            password,
+            password: tools.enbcrypt(password),
             email,
             avatar
         });
@@ -46,13 +46,6 @@ router.post('/register', async ctx => {
         //     });
         // });
         
-        // 密码加密
-        await bcrypt.genSalt(10, (err, salt) => {
-            bcrypt.hash(password, salt, (err, encryptPassword) => {
-                if (err) throw err;
-                newUser.password = encryptPassword;
-            });
-        });
         // 存储到数据库
         await newUser.save()
                      .then(user => {
