@@ -2,6 +2,7 @@ import Router from 'koa-router';
 import User from '../../../modules/User';
 import tools from '../../../config/tools';
 import gravatar from 'gravatar';
+import jwt from 'jsonwebtoken';
 
 const router = new Router();
 
@@ -93,8 +94,25 @@ router.post('/login', async ctx => {
         // 验证密码
         const result = tools.checkPassword(password, user.password);
         if (result) {
+            // 验证通过
+            const payLoad = {
+                id: user._id,
+                name: user.username,
+                avatar: user.avatar
+            };
+            const token = jwt.sign(payLoad, 'secret', { expiresIn: 3600 * 24 });
+            
             ctx.status = 200;
-            ctx.body = { success: true };
+            ctx.body = {
+                data: {
+                    user,
+                    token: 'Bearer ' + token
+                },
+                meta: {
+                    msg: '登录成功',
+                    status: 200
+                }
+            };
         } else {
             ctx.status = 403;
             ctx.body = {
