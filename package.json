@@ -3,14 +3,15 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
-    "start": "node-dev app.js"
+    "start": "nodemon --exec babel-node --presets env app.js"
   },
   "license": "MIT",
   "dependencies": {
     "koa": "^2.13.0",
     "koa-router": "^10.0.0",
     "mongoose": "^5.11.6",
-    "node-dev": "^6.2.0"
+    "node-dev": "^6.2.0",
+    "nodemon": "^2.0.6"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

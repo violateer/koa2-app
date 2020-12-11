@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 
 // 连接数据库
 mongoose
-    .connect('mongodb://47.101.61.134:27017')
+    .connect('mongodb://47.101.61.134:27017', { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
         console.log('MongoDb Connected');
     })
