@@ -1,6 +1,14 @@
 {
   "name": "koa2-app",
   "version": "1.0.0",
-  "main": "index.js",
-  "license": "MIT"
+  "main": "app.js",
+  "scripts": {
+    "start": "node-dev app.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "koa": "^2.13.0",
+    "koa-router": "^10.0.0",
+    "node-dev": "^6.2.0"
+  }
 }
