@@ -105,7 +105,10 @@ router.post('/login', async ctx => {
             ctx.status = 200;
             ctx.body = {
                 data: {
-                    user,
+                    id: user._id,
+                    username: user.username,
+                    email: user.email,
+                    avatar: user.avatar,
                     token: 'Bearer ' + token
                 },
                 meta: {
