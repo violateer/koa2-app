@@ -24,6 +24,7 @@ router.get('/test', async ctx => {
  */
 router.post('/register', async ctx => {
     const { username, password, email } = ctx.request.body;
+    /** @type {string[]} findResult */
     const findResult = await User.find({ email });
     if (findResult.length > 0) {
         ctx.status = 500;
@@ -58,6 +59,7 @@ router.post('/register', async ctx => {
 router.post('/login', async ctx => {
     const { username, password, email } = ctx.request.body;
     // 查询
+    /** @type {Object[]} findResult */
     const findResult = await User.find({ email });
     const user = findResult[0];
     if (findResult.length === 0) {
