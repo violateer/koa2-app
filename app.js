@@ -1,11 +1,10 @@
 import Koa from 'koa';
 import Router from 'koa-router';
 import mongoose from 'mongoose';
-import password from './localInformation';
 
 // 连接数据库
 mongoose
-    .connect(`mongodb+srv://violateer:${password}@cluster0.wngjb.mongodb.net/<dbname>?retryWrites=true&w=majority`)
+    .connect('mongodb://47.101.61.134:27017')
     .then(() => {
         console.log('MongoDb Connected');
     })
