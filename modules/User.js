@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 
 // 实例化数据模板
 const UserSchema = new Schema({
-    name: {
+    username: {
         type: String,
         required: true
     },
