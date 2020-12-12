@@ -5,6 +5,7 @@ import gravatar from 'gravatar';
 import jwt from 'jsonwebtoken';
 import { secretOrKey } from '../../../config/keys';
 import passport from 'koa-passport';
+import validateRegisterInput from '../../../validation/register';
 
 const router = new Router();
 
@@ -27,6 +28,20 @@ router.get('/test', async ctx => {
  */
 router.post('/register', async ctx => {
     const { username, password, email } = ctx.request.body;
+    // 验证
+    const { errs, isValid } = validateRegisterInput(ctx.request.body);
+    if (!isValid) {
+        ctx.status = 400;
+        ctx.body = {
+            data: 'error',
+            meta: {
+                error: errs,
+                status: 400
+            }
+        };
+        return;
+    }
+    
     /** @type {string[]} findResult */
     const findResult = await User.find({ email });
     if (findResult.length > 0) {
@@ -34,7 +49,9 @@ router.post('/register', async ctx => {
         ctx.body = {
             data: 'error',
             meta: {
-                msg: '邮箱已被占用',
+                error: {
+                    email: '邮箱已被占用'
+                },
                 status: 422
             }
         };
@@ -64,7 +81,9 @@ router.post('/register', async ctx => {
                          ctx.body = {
                              data: 'error',
                              meta: {
-                                 msg: '未知错误',
+                                 msg: {
+                                     error: '未知错误'
+                                 },
                                  status: 500
                              }
                          };
@@ -86,9 +105,11 @@ router.post('/login', async ctx => {
     if (findResult.length === 0) {
         ctx.status = 404;
         ctx.body = {
+            data: 'error',
             meta: {
-                data: 'error',
-                msg: '用户不存在',
+                msg: {
+                    error: '未知错误'
+                },
                 status: 404
             }
         };
@@ -123,7 +144,9 @@ router.post('/login', async ctx => {
             ctx.body = {
                 data: 'error',
                 meta: {
-                    msg: '密码错误',
+                    msg: {
+                        error: '密码错误'
+                    },
                     status: 403
                 }
             };

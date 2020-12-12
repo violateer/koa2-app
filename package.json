@@ -15,7 +15,8 @@
     "koa-router": "^10.0.0",
     "mongoose": "^5.11.6",
     "node-dev": "^6.2.0",
-    "nodemon": "^2.0.6"
+    "nodemon": "^2.0.6",
+    "validator": "^13.5.2"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
