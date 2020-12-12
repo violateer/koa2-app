@@ -45,15 +45,28 @@ router.post('/register', async ctx => {
         return;
     }
     
-    /** @type {string[]} findResult */
-    const findResult = await User.find({ email });
-    if (findResult.length > 0) {
+    /** @type {string[]} findResultEmail */
+    const findResultEmail = await User.find({ email });
+    /** @type {string[]} findResultUsername */
+    const findResultUsername = await User.find({ username });
+    if (findResultEmail.length > 0) {
         ctx.status = 422;
         ctx.body = {
             data: 'error',
             meta: {
                 error: {
                     email: '邮箱已被占用'
+                },
+                status: 422
+            }
+        };
+    } else if (findResultUsername.length > 0) {
+        ctx.status = 422;
+        ctx.body = {
+            data: 'error',
+            meta: {
+                error: {
+                    email: '用户名已被占用'
                 },
                 status: 422
             }
