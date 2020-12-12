@@ -150,7 +150,7 @@ router.post('/login', async ctx => {
         if (result) {
             // 验证通过
             const payLoad = {
-                id: user._id,
+                _id: user._id,
                 name: user.username,
                 avatar: user.avatar
             };
@@ -191,10 +191,10 @@ router.post('/login', async ctx => {
  * @access 接口是私密的
  */
 router.get('/current', passport.authenticate('jwt', { session: false }), async ctx => {
-    const { id, username, email, avatar } = ctx.state.user;
+    const { _id, username, email, avatar } = ctx.state.user;
     ctx.status = 200;
     ctx.body = {
-        data: { id, username, email, avatar },
+        data: { _id, username, email, avatar },
         meta: {
             msg: '验证成功',
             status: 200
