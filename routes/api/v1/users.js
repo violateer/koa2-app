@@ -117,8 +117,9 @@ router.post('/login', async ctx => {
     }
     
     // 查询
+    const searchQuery = tools.initSearchQuery(username, email);
     /** @type {Object[]} findResult */
-    const findResult = await User.find({ email });
+    const findResult = await User.find(searchQuery);
     const user = findResult[0];
     if (findResult.length === 0) {
         ctx.status = 404;
@@ -126,7 +127,7 @@ router.post('/login', async ctx => {
             data: 'error',
             meta: {
                 msg: {
-                    error: '未知错误'
+                    error: '未查询到用户'
                 },
                 status: 404
             }
