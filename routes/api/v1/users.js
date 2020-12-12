@@ -1,5 +1,5 @@
 import Router from 'koa-router';
-import User from '../../../modules/User';
+import User from '../../../models/User';
 import tools from '../../../config/tools';
 import gravatar from 'gravatar';
 import jwt from 'jsonwebtoken';
