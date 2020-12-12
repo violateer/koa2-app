@@ -5,7 +5,10 @@ import gravatar from 'gravatar';
 import jwt from 'jsonwebtoken';
 import { secretOrKey } from '../../../config/keys';
 import passport from 'koa-passport';
+
+// 验证模块
 import validateRegisterInput from '../../../validation/register';
+import validateLoginInput from '../../../validation/login';
 
 const router = new Router();
 
@@ -98,6 +101,21 @@ router.post('/register', async ctx => {
  */
 router.post('/login', async ctx => {
     const { username, password, email } = ctx.request.body;
+    
+    // 验证
+    const { errs, isValid } = validateLoginInput(ctx.request.body);
+    if (!isValid) {
+        ctx.status = 400;
+        ctx.body = {
+            data: 'error',
+            meta: {
+                error: errs,
+                status: 400
+            }
+        };
+        return;
+    }
+    
     // 查询
     /** @type {Object[]} findResult */
     const findResult = await User.find({ email });
