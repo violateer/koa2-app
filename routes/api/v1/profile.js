@@ -1,8 +1,9 @@
 import Router from 'koa-router';
 import passport from 'koa-passport';
-
 // 引入模板实例
 import Profile from '../../../models/Profile';
+// 引入验证
+import validateProfileInput from '../../../validation/profile';
 
 const router = new Router();
 
@@ -52,14 +53,28 @@ router.get('/', passport.authenticate('jwt', { session: false }), async ctx => {
 
 /**
  * @route POST api/v1/profile/test
- * @desc 添加个人信息接口地址
+ * @desc 添加和编辑个人信息接口地址
  * @access 接口是私密的
  */
 router.post('/', passport.authenticate('jwt', { session: false }), async ctx => {
     const body = ctx.request.body;
     const { id } = ctx.state.user;
-    const profileFields = {};
+    const { errs, isValid } = validateProfileInput(body);
+    // 验证
+    if (!isValid) {
+        ctx.status = 400;
+        ctx.body = {
+            data: 'error',
+            meta: {
+                error: errs,
+                status: 400
+            }
+        };
+        return;
+    }
     
+    // 生成信息
+    const profileFields = {};
     profileFields.user = id;
     if (body.handle) profileFields.handle = body.handle;
     if (body.company) profileFields.company = body.company;
@@ -81,6 +96,7 @@ router.post('/', passport.authenticate('jwt', { session: false }), async ctx => 
     if (body.facebook) profileFields.social.facebook = body.facebook;
     
     // 查询数据库
+    /** @type {Object[]} profile */
     const profile = await Profile.find({ user: id });
     if (profile.length > 0) {
         // 更新
@@ -102,7 +118,7 @@ router.post('/', passport.authenticate('jwt', { session: false }), async ctx => 
         await new Profile(profileFields).save().then(profile => {
             ctx.status = 200;
             ctx.body = {
-                data: profileFields,
+                data: profile,
                 meta: {
                     msg: '添加成功',
                     status: 200
