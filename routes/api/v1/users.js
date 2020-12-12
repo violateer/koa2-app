@@ -5,7 +5,6 @@ import gravatar from 'gravatar';
 import jwt from 'jsonwebtoken';
 import { secretOrKey } from '../../../config/keys';
 import passport from 'koa-passport';
-
 // 验证模块
 import validateRegisterInput from '../../../validation/register';
 import validateLoginInput from '../../../validation/login';
@@ -20,7 +19,7 @@ const router = new Router();
 router.get('/test', async ctx => {
     ctx.status = 200;
     ctx.body = {
-        msg: 'test works...'
+        msg: 'user works...'
     };
 });
 

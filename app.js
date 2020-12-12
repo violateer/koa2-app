@@ -2,7 +2,10 @@ import Koa from 'koa';
 import Router from 'koa-router';
 import mongoose from 'mongoose';
 import serverIp from './config/serverIp';
+// 路由接口
 import users from './routes/api/v1/users';
+import profile from './routes/api/v1/profile';
+
 import bodyParser from 'koa-bodyparser';
 import passport from 'koa-passport';
 import surePassport from './config/passport';
@@ -30,6 +33,7 @@ mongoose
 
 // 配置路由地址
 router.use('/api/v1/users', users);
+router.use('/api/v1/profile', profile);
 
 // 配置路由
 app.use(router.routes()).use(router.allowedMethods());
