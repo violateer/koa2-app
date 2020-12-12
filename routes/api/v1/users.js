@@ -3,13 +3,15 @@ import User from '../../../modules/User';
 import tools from '../../../config/tools';
 import gravatar from 'gravatar';
 import jwt from 'jsonwebtoken';
+import { secretOrKey } from '../../../config/keys';
+import passport from 'koa-passport';
 
 const router = new Router();
 
 /**
  * @route Get api/v1/users/test
  * @desc 测试接口地址
- * @assec 接口是公开的
+ * @access 接口是公开的
  */
 router.get('/test', async ctx => {
     ctx.status = 200;
@@ -21,7 +23,7 @@ router.get('/test', async ctx => {
 /**
  * @route Post api/v1/users/register
  * @desc 注册接口地址
- * @assec 接口是公开的
+ * @access 接口是公开的
  */
 router.post('/register', async ctx => {
     const { username, password, email } = ctx.request.body;
@@ -73,7 +75,7 @@ router.post('/register', async ctx => {
 /**
  * @route POST api/v1/users/login
  * @desc 登录接口地址  返回token
- * @assec 接口是公开的
+ * @access 接口是公开的
  */
 router.post('/login', async ctx => {
     const { username, password, email } = ctx.request.body;
@@ -100,7 +102,7 @@ router.post('/login', async ctx => {
                 name: user.username,
                 avatar: user.avatar
             };
-            const token = jwt.sign(payLoad, 'secret', { expiresIn: 3600 * 24 });
+            const token = jwt.sign(payLoad, secretOrKey, { expiresIn: 3600 * 24 });
             
             ctx.status = 200;
             ctx.body = {
@@ -127,6 +129,23 @@ router.post('/login', async ctx => {
             };
         }
     }
+});
+
+/**
+ * @route Get api/v1/users/current
+ * @desc 用户信息接口地址  返回用户信息
+ * @access 接口是私密的
+ */
+router.get('/current', passport.authenticate('jwt', { session: false }), async ctx => {
+    const { id, username, email, avatar } = ctx.state.user;
+    ctx.status = 200;
+    ctx.body = {
+        data: { id, username, email, avatar },
+        meta: {
+            msg: '验证成功',
+            status: 200
+        }
+    };
 });
 
 export default router.routes();

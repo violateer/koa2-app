@@ -4,12 +4,19 @@ import mongoose from 'mongoose';
 import serverIp from './config/serverIp';
 import users from './routes/api/v1/users';
 import bodyParser from 'koa-bodyparser';
+import passport from 'koa-passport';
+import surePassport from './config/passport';
 
 const app = new Koa();
 const router = new Router();
 const port = process.env.PORT || 5000;
 
 app.use(bodyParser());
+app.use(passport.initialize());
+app.use(passport.session());
+
+// 回调到passport.js
+surePassport(passport);
 
 // 连接数据库
 mongoose
