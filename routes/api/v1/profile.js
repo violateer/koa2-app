@@ -24,10 +24,10 @@ router.get('/test', async ctx => {
  * @access 接口是私有的
  */
 router.get('/', passport.authenticate('jwt', { session: false }), async ctx => {
-    const { id, username, email, avatar } = ctx.state.user;
+    const { id } = ctx.state.user;
     // 跨表查询
     /** @type {Object[]} profile */
-    const profile = await Profile.find({ user: id }).populate('user', [username, avatar]);
+    const profile = await Profile.find({ user: id }).populate('user', ['username', 'avatar']);
     if (profile.length > 0) {
         ctx.status = 200;
         ctx.body = {
@@ -47,6 +47,68 @@ router.get('/', passport.authenticate('jwt', { session: false }), async ctx => {
             }
         };
         return;
+    }
+});
+
+/**
+ * @route POST api/v1/profile/test
+ * @desc 添加个人信息接口地址
+ * @access 接口是私密的
+ */
+router.post('/', passport.authenticate('jwt', { session: false }), async ctx => {
+    const body = ctx.request.body;
+    const { id } = ctx.state.user;
+    const profileFields = {};
+    
+    profileFields.user = id;
+    if (body.handle) profileFields.handle = body.handle;
+    if (body.company) profileFields.company = body.company;
+    if (body.website) profileFields.website = body.website;
+    if (body.location) profileFields.location = body.location;
+    if (body.status) profileFields.status = body.status;
+    if (body.bio) profileFields.bio = body.bio;
+    if (body.githubusername) profileFields.githubusername = body.githubusername;
+    
+    // skills 数据转换 "html,css,js,vue"
+    if (typeof body.skills !== 'undefined') {
+        profileFields.skills = body.skills.split(',');
+    }
+    
+    profileFields.social = {};
+    if (body.wechat) profileFields.social.wechat = body.wechat;
+    if (body.QQ) profileFields.social.QQ = body.QQ;
+    if (body.twitter) profileFields.social.twitter = body.twitter;
+    if (body.facebook) profileFields.social.facebook = body.facebook;
+    
+    // 查询数据库
+    const profile = await Profile.find({ user: id });
+    if (profile.length > 0) {
+        // 更新
+        const profileUpdate = await Profile.findOneAndUpdate(
+            { user: id },
+            { $set: profileFields },
+            { new: true, useFindAndModify: false }
+        );
+        ctx.status = 200;
+        ctx.body = {
+            data: profileUpdate,
+            meta: {
+                msg: '更新成功',
+                status: 200
+            }
+        };
+    } else {
+        // 添加
+        await new Profile(profileFields).save().then(profile => {
+            ctx.status = 200;
+            ctx.body = {
+                data: profileFields,
+                meta: {
+                    msg: '添加成功',
+                    status: 200
+                }
+            };
+        });
     }
 });
 
