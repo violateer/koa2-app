@@ -48,7 +48,6 @@ router.get('/', passport.authenticate('jwt', { session: false }), async ctx => {
                 status: 404
             }
         };
-        return;
     }
 });
 
@@ -116,7 +115,6 @@ router.post('/', passport.authenticate('jwt', { session: false }), async ctx => 
  * @access 接口是公开的
  */
 router.get('/handle', async ctx => {
-    const errs = {};
     const { handle } = ctx.query;
     await tools.judgeFindResultAndReturn(Profile, ctx, { handle });
 });

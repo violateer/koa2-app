@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import isEmpty from '../validation/isEmpty';
-import User from '../models/User';
+// import User from '../models/User';
 import Profile from '../models/Profile';
 
 const tools = {
