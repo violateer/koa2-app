@@ -1,5 +1,6 @@
 import Router from 'koa-router';
 import passport from 'koa-passport';
+import tools from '../../../config/tools';
 // 引入模板实例
 import Profile from '../../../models/Profile';
 // 引入验证
@@ -52,7 +53,7 @@ router.get('/', passport.authenticate('jwt', { session: false }), async ctx => {
 });
 
 /**
- * @route POST api/v1/profile/test
+ * @route POST api/v1/profile/
  * @desc 添加和编辑个人信息接口地址
  * @access 接口是私密的
  */
@@ -74,26 +75,7 @@ router.post('/', passport.authenticate('jwt', { session: false }), async ctx => 
     }
     
     // 生成信息
-    const profileFields = {};
-    profileFields.user = id;
-    if (body.handle) profileFields.handle = body.handle;
-    if (body.company) profileFields.company = body.company;
-    if (body.website) profileFields.website = body.website;
-    if (body.location) profileFields.location = body.location;
-    if (body.status) profileFields.status = body.status;
-    if (body.bio) profileFields.bio = body.bio;
-    if (body.githubusername) profileFields.githubusername = body.githubusername;
-    
-    // skills 数据转换 "html,css,js,vue"
-    if (typeof body.skills !== 'undefined') {
-        profileFields.skills = body.skills.split(',');
-    }
-    
-    profileFields.social = {};
-    if (body.wechat) profileFields.social.wechat = body.wechat;
-    if (body.QQ) profileFields.social.QQ = body.QQ;
-    if (body.twitter) profileFields.social.twitter = body.twitter;
-    if (body.facebook) profileFields.social.facebook = body.facebook;
+    const profileFields = tools.initProfileDatas(body, id);
     
     // 查询数据库
     /** @type {Object[]} profile */
@@ -126,6 +108,27 @@ router.post('/', passport.authenticate('jwt', { session: false }), async ctx => 
             };
         });
     }
+});
+
+/**
+ * @route Get api/v1/profile/handle?handle=test
+ * @desc 通过handle获取个人信息接口地址
+ * @access 接口是公开的
+ */
+router.get('/handle', async ctx => {
+    const errs = {};
+    const { handle } = ctx.query;
+    await tools.judgeFindResultAndReturn(Profile, ctx, { handle });
+});
+
+/**
+ * @route Get api/v1/profile/user?user_id=5fd4ad7df91a1616dc9d9798
+ * @desc 通过user_id获取个人信息接口地址
+ * @access 接口是公开的
+ */
+router.get('/user', async ctx => {
+    const { user_id } = ctx.query;
+    await tools.judgeFindResultAndReturn(Profile, ctx, { _id: user_id });
 });
 
 export default router.routes();
