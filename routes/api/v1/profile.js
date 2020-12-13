@@ -262,4 +262,103 @@ router.post('/education', passport.authenticate('jwt', { session: false }), asyn
     }
 });
 
+/**
+ * @route DELETE api/v1/profile/experience?exp_id=asdasd
+ * @desc 删除工作经验接口地址
+ * @access 接口是私有的
+ */
+router.delete('/experience', passport.authenticate('jwt', { session: false }), async ctx => {
+    const { id } = ctx.state.user;
+    // 拿到id
+    const { exp_id } = ctx.query;
+    
+    // 查询
+    const profile = await Profile.find({ user: id });
+    if (profile[0].experience.length > 0) {
+        // 找元素下标
+        const removeIndex = profile[0].experience.map(item => item.id).indexOf(exp_id);
+        // 删除
+        profile[0].experience.splice(removeIndex, 1);
+        // 更新数据库
+        const profileUpdate = await Profile.findOneAndUpdate(
+            { user: id },
+            { $set: profile[0] },
+            { new: true, useFindAndModify: false }
+        );
+        
+        ctx.status = 200;
+        ctx.body = {
+            data: profileUpdate,
+            meta: {
+                msg: '删除成功',
+                status: 200
+            }
+        };
+    } else {
+        ctx.status = 404;
+        ctx.body = {
+            data: 'error',
+            meta: {
+                error: '没有任何数据',
+                status: 404
+            }
+        };
+    }
+});
+
+/**
+ * @route DELETE api/v1/profile/education?edu_id=asdasd
+ * @desc 删除工作经验接口地址
+ * @access 接口是私有的
+ */
+router.delete('/education', passport.authenticate('jwt', { session: false }), async ctx => {
+    const { id } = ctx.state.user;
+    // 拿到id
+    const { edu_id } = ctx.query;
+    
+    // 查询
+    const profile = await Profile.find({ user: id });
+    if (profile[0].education.length > 0) {
+        // 找元素下标
+        const removeIndex = profile[0].education.map(item => item.id).indexOf(edu_id);
+        // 删除
+        profile[0].education.splice(removeIndex, 1);
+        // 更新数据库
+        const profileUpdate = await Profile.findOneAndUpdate(
+            { user: id },
+            { $set: profile[0] },
+            { new: true, useFindAndModify: false }
+        );
+        
+        ctx.status = 200;
+        ctx.body = {
+            data: profileUpdate,
+            meta: {
+                msg: '删除成功',
+                status: 200
+            }
+        };
+    } else {
+        ctx.status = 404;
+        ctx.body = {
+            data: 'error',
+            meta: {
+                error: '没有任何数据',
+                status: 404
+            }
+        };
+    }
+});
+
+/**
+ * @route DELETE api/v1/profile
+ * @desc 删除整个用户接口地址
+ * @access 接口是私有的
+ */
+router.delete('/', passport.authenticate('jwt', { session: false }), async ctx => {
+    const { id } = ctx.state.user;
+    const profile = await Profile.deleteOne({user:id})
+    
+});
+
 export default router.routes();
