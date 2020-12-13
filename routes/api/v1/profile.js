@@ -129,4 +129,13 @@ router.get('/user', async ctx => {
     await tools.judgeFindResultAndReturn(Profile, ctx, { _id: user_id });
 });
 
+/**
+ * @route Get api/v1/profile/all
+ * @desc 获取所有人信息接口地址
+ * @access 接口是公开的
+ */
+router.get('/all', async ctx => {
+    await tools.judgeFindResultAndReturn(Profile, ctx, {});
+});
+
 export default router.routes();

@@ -62,6 +62,7 @@ const tools = {
     // 判断查询结果并返回数据，暂时只支持Profile查询
     async judgeFindResultAndReturn (Model, ctx, filterOptions) {
         const errs = {};
+        const errMessage = filterOptions ? '未找到该用户信息' : '没有任何用户信息';
         /** @type {Object[]} findResult */
         let findResult;
         switch (Model) {
@@ -72,7 +73,7 @@ const tools = {
                 break;
         }
         if (findResult.length === 0) {
-            errs.profile = '未找到该用户信息';
+            errs.profile = errMessage;
             ctx.status = 404;
             ctx.body = {
                 data: 'error',
@@ -84,7 +85,7 @@ const tools = {
         } else {
             ctx.status = 200;
             ctx.body = {
-                data: findResult[0],
+                data: findResult,
                 meta: {
                     msg: '查询成功',
                     status: 200
