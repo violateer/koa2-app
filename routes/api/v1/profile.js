@@ -142,7 +142,7 @@ router.get('/all', async ctx => {
 
 /**
  * @route Post api/v1/profile/experience
- * @desc 工作经验接口地址
+ * @desc 添加工作经验接口地址
  * @access 接口是私有的
  */
 router.post('/experience', passport.authenticate('jwt', { session: false }), async ctx => {
@@ -163,28 +163,32 @@ router.post('/experience', passport.authenticate('jwt', { session: false }), asy
         return;
     }
     
-    const profileFields = { experience: [] };
+    const experience = [];
     const profile = await Profile.find({ user: id });
     if (profile.length > 0) {
         const newExp = {
             title, current, company, location, description, from, to
         };
         
-        profileFields.experience.unshift(newExp);
-        const profileUpdate = await Profile.findOneAndUpdate(
+        experience.unshift(newExp);
+        const profileUpdate = await Profile.updateOne(
             { user: id },
-            { $set: profileFields },
-            { new: true, useFindAndModify: false }
+            { $push: { experience } },
+            { sort: '1' }
         );
         
-        ctx.status = 200;
-        ctx.body = {
-            data: profileUpdate,
-            meta: {
-                msg: '更新成功',
-                status: 200
-            }
-        };
+        if (profileUpdate.ok === 1) {
+            const newProfile = await Profile.find({ user: id }).populate('user', ['name', 'avatar']);
+            
+            ctx.status = 200;
+            ctx.body = {
+                data: newProfile,
+                meta: {
+                    msg: '更新成功',
+                    status: 200
+                }
+            };
+        }
     } else {
         errs.profile = '没有该用户的信息';
         ctx.status = 404;
@@ -200,7 +204,7 @@ router.post('/experience', passport.authenticate('jwt', { session: false }), asy
 
 /**
  * @route Post api/v1/profile/education
- * @desc 教育经历接口地址
+ * @desc 添加教育经历接口地址
  * @access 接口是私有的
  */
 router.post('/education', passport.authenticate('jwt', { session: false }), async ctx => {
@@ -221,26 +225,30 @@ router.post('/education', passport.authenticate('jwt', { session: false }), asyn
         return;
     }
     
-    const profileFields = { education: [] };
+    const education = [];
     const profile = await Profile.find({ user: id });
     if (profile.length > 0) {
-        const newExp = { school, current, degree, fieldofstudy, description, from, to };
+        const newEdu = { school, current, degree, fieldofstudy, description, from, to };
         
-        profileFields.education.unshift(newExp);
-        const profileUpdate = await Profile.findOneAndUpdate(
+        education.unshift(newEdu);
+        const profileUpdate = await Profile.updateOne(
             { user: id },
-            { $set: profileFields },
-            { new: true, useFindAndModify: false }
+            { $push: { education } },
+            { sort: '1' }
         );
         
-        ctx.status = 200;
-        ctx.body = {
-            data: profileUpdate,
-            meta: {
-                msg: '更新成功',
-                status: 200
-            }
-        };
+        if (profileUpdate.ok === 1) {
+            const newProfile = await Profile.find({ user: id }).populate('user', ['name', 'avatar']);
+            
+            ctx.status = 200;
+            ctx.body = {
+                data: newProfile,
+                meta: {
+                    msg: '更新成功',
+                    status: 200
+                }
+            };
+        }
     } else {
         errs.profile = '没有该用户的信息';
         ctx.status = 404;
