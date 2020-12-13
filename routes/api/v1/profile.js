@@ -5,6 +5,8 @@ import tools from '../../../config/tools';
 import Profile from '../../../models/Profile';
 // 引入验证
 import validateProfileInput from '../../../validation/profile';
+import validateExperienceInput from '../../../validation/experience';
+import validateEducationInput from '../../../validation/education';
 
 const router = new Router();
 
@@ -136,6 +138,120 @@ router.get('/user', async ctx => {
  */
 router.get('/all', async ctx => {
     await tools.judgeFindResultAndReturn(Profile, ctx, {});
+});
+
+/**
+ * @route Post api/v1/profile/experience
+ * @desc 工作经验接口地址
+ * @access 接口是私有的
+ */
+router.post('/experience', passport.authenticate('jwt', { session: false }), async ctx => {
+    const { id } = ctx.state.user;
+    const { title, current, company, location, description, from, to } = ctx.request.body;
+    const { errs, isValid } = validateExperienceInput(ctx.request.body);
+    
+    // 验证
+    if (!isValid) {
+        ctx.status = 400;
+        ctx.body = {
+            data: 'error',
+            meta: {
+                error: errs,
+                status: 400
+            }
+        };
+        return;
+    }
+    
+    const profileFields = { experience: [] };
+    const profile = await Profile.find({ user: id });
+    if (profile.length > 0) {
+        const newExp = {
+            title, current, company, location, description, from, to
+        };
+        
+        profileFields.experience.unshift(newExp);
+        const profileUpdate = await Profile.findOneAndUpdate(
+            { user: id },
+            { $set: profileFields },
+            { new: true, useFindAndModify: false }
+        );
+        
+        ctx.status = 200;
+        ctx.body = {
+            data: profileUpdate,
+            meta: {
+                msg: '更新成功',
+                status: 200
+            }
+        };
+    } else {
+        errs.profile = '没有该用户的信息';
+        ctx.status = 404;
+        ctx.body = {
+            data: 'error',
+            meta: {
+                error: errs,
+                status: 404
+            }
+        };
+    }
+});
+
+/**
+ * @route Post api/v1/profile/education
+ * @desc 教育经历接口地址
+ * @access 接口是私有的
+ */
+router.post('/education', passport.authenticate('jwt', { session: false }), async ctx => {
+    const { id } = ctx.state.user;
+    const { school, current, degree, fieldofstudy, description, from, to } = ctx.request.body;
+    const { errs, isValid } = validateEducationInput(ctx.request.body);
+    
+    // 验证
+    if (!isValid) {
+        ctx.status = 400;
+        ctx.body = {
+            data: 'error',
+            meta: {
+                error: errs,
+                status: 400
+            }
+        };
+        return;
+    }
+    
+    const profileFields = { education: [] };
+    const profile = await Profile.find({ user: id });
+    if (profile.length > 0) {
+        const newExp = { school, current, degree, fieldofstudy, description, from, to };
+        
+        profileFields.education.unshift(newExp);
+        const profileUpdate = await Profile.findOneAndUpdate(
+            { user: id },
+            { $set: profileFields },
+            { new: true, useFindAndModify: false }
+        );
+        
+        ctx.status = 200;
+        ctx.body = {
+            data: profileUpdate,
+            meta: {
+                msg: '更新成功',
+                status: 200
+            }
+        };
+    } else {
+        errs.profile = '没有该用户的信息';
+        ctx.status = 404;
+        ctx.body = {
+            data: 'error',
+            meta: {
+                error: errs,
+                status: 404
+            }
+        };
+    }
 });
 
 export default router.routes();
