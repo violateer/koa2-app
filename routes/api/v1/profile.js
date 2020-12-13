@@ -3,6 +3,7 @@ import passport from 'koa-passport';
 import tools from '../../../config/tools';
 // 引入模板实例
 import Profile from '../../../models/Profile';
+import User from '../../../models/User';
 // 引入验证
 import validateProfileInput from '../../../validation/profile';
 import validateExperienceInput from '../../../validation/experience';
@@ -357,8 +358,38 @@ router.delete('/education', passport.authenticate('jwt', { session: false }), as
  */
 router.delete('/', passport.authenticate('jwt', { session: false }), async ctx => {
     const { id } = ctx.state.user;
-    const profile = await Profile.deleteOne({user:id})
-    
+    const profile = await Profile.deleteOne({ user: id });
+    if (profile.ok === 1) {
+        const user = await User.deleteOne({ _id: id });
+        if (user.ok === 1) {
+            ctx.status = 200;
+            ctx.body = {
+                data: 'success',
+                meta: {
+                    msg: '删除成功',
+                    status: 200
+                }
+            };
+        } else {
+            ctx.status = 404;
+            ctx.body = {
+                data: 'NOT FOUND',
+                meta: {
+                    error: '没有找到该用户',
+                    status: 404
+                }
+            };
+        }
+    } else {
+        ctx.status = 404;
+        ctx.body = {
+            data: 'NOT FOUND',
+            meta: {
+                error: '该用户没有任何信息',
+                status: 404
+            }
+        };
+    }
 });
 
 export default router.routes();
