@@ -1,5 +1,6 @@
 import Router from 'koa-router';
 import passport from 'koa-passport';
+import tools from '../../../config/tools';
 // 引入模板实例
 import Post from '../../../models/Post';
 import Profile from '../../../models/Profile';
@@ -35,35 +36,14 @@ router.post('/', passport.authenticate('jwt', { session: false }), async ctx => 
     // 验证
     const { errs, isValid } = validatePostInput(ctx.request.body);
     if (!isValid) {
-        ctx.status = 400;
-        ctx.body = {
-            data: 'error',
-            meta: {
-                error: errs,
-                status: 400
-            }
-        };
+        tools.setCtxData(ctx, 400, { data: 'validate error', msg: '格式验证错误', errs });
         return;
     }
     
     await newPost.save().then(post => {
-        ctx.status = 200;
-        ctx.body = {
-            data: post,
-            meta: {
-                msg: '发表成功',
-                status: 200
-            }
-        };
+        tools.setCtxData(ctx, 200, { data: post, msg: '发表成功' });
     }).catch(err => {
-        ctx.status = 500;
-        ctx.body = {
-            data: 'error',
-            meta: {
-                error: err,
-                status: 500
-            }
-        };
+        tools.setCtxData(ctx, 500, { data: '服务器错误', msg: '发表成功', errs: err });
     });
 });
 
@@ -74,23 +54,9 @@ router.post('/', passport.authenticate('jwt', { session: false }), async ctx => 
  */
 router.get('/all', async ctx => {
     await Post.find().sort({ date: -1 }).then(posts => {
-        ctx.status = 200;
-        ctx.body = {
-            data: posts,
-            meta: {
-                msg: '查询成功',
-                status: 200
-            }
-        };
+        tools.setCtxData(ctx, 200, { data: posts, msg: '查询成功' });
     }).catch(err => {
-        ctx.status = 404;
-        ctx.body = {
-            data: 'NOT FOUND',
-            meta: {
-                error: err,
-                status: 404
-            }
-        };
+        tools.setCtxData(ctx, 404, { data: 'search error', msg: '未查询到结果', errs: err });
     });
 });
 
@@ -102,23 +68,9 @@ router.get('/all', async ctx => {
 router.get('/', async ctx => {
     const { id } = ctx.query;
     await Post.findById(id).then(post => {
-        ctx.status = 200;
-        ctx.body = {
-            data: post,
-            meta: {
-                msg: '查询成功',
-                status: 200
-            }
-        };
+        tools.setCtxData(ctx, 200, { data: post, msg: '查询成功' });
     }).catch(err => {
-        ctx.status = 404;
-        ctx.body = {
-            data: 'NOT FOUND',
-            meta: {
-                error: err,
-                status: 404
-            }
-        };
+        tools.setCtxData(ctx, 404, { data: 'search error', msg: '未查询到结果', errs: err });
     });
 });
 
@@ -138,35 +90,14 @@ router.delete('/', passport.authenticate('jwt', { session: false }), async ctx =
         
         // 判断是否是当前用户
         if (post.user.toString() !== userId) {
-            ctx.status = 401;
-            ctx.body = {
-                data: 'NOT ALLOWED',
-                meta: {
-                    error: '用户非法操作',
-                    status: 401
-                }
-            };
+            tools.setCtxData(ctx, 401, { data: 'NOT ALLOWED', msg: '用户非法操作' });
             return;
         }
         await Post.deleteOne({ _id: queryId }).then(() => {
-            ctx.status = 200;
-            ctx.body = {
-                data: 'success',
-                meta: {
-                    msg: '删除成功',
-                    status: 200
-                }
-            };
+            tools.setCtxData(ctx, 200, { data: 'delete success', msg: '删除成功' });
         });
     } else {
-        ctx.status = 404;
-        ctx.body = {
-            data: 'NOT FOUND',
-            meta: {
-                error: '个人信息不存在',
-                status: 404
-            }
-        };
+        tools.setCtxData(ctx, 404, { data: 'search error', msg: '个人信息不存在' });
     }
 });
 
@@ -186,14 +117,7 @@ router.post('/like', passport.authenticate('jwt', { session: false }), async ctx
         console.log(queryId);
         const isLike = post.likes.filter(like => like.user.toString() === searchId).length > 0;
         if (isLike) {
-            ctx.status = 400;
-            ctx.body = {
-                data: 'ALREADY LIKED',
-                meta: {
-                    error: '无法重复点赞',
-                    status: 400
-                }
-            };
+            tools.setCtxData(ctx, 400, { data: 'ALREADY LIKED', msg: '无法重复点赞' });
             return;
         }
         
@@ -203,23 +127,9 @@ router.post('/like', passport.authenticate('jwt', { session: false }), async ctx
             { _id: queryId },
             { $set: post },
             { new: true, useFindAndModify: false });
-        ctx.status = 200;
-        ctx.body = {
-            data: postUpdate,
-            meta: {
-                msg: '更新成功',
-                status: 200
-            }
-        };
+        tools.setCtxData(ctx, 200, { data: postUpdate, msg: '更新成功' });
     } else {
-        ctx.status = 404;
-        ctx.body = {
-            data: 'NOT FOUND',
-            meta: {
-                error: '该用户没有个人信息',
-                status: 404
-            }
-        };
+        tools.setCtxData(ctx, 404, { data: 'search error', msg: '该用户没有个人信息' });
     }
 });
 
@@ -238,14 +148,7 @@ router.post('/unlike', passport.authenticate('jwt', { session: false }), async c
         const post = await Post.findById(queryId);
         const isLike = post.likes.filter(like => like.user.toString() === searchId).length === 0;
         if (isLike) {
-            ctx.status = 400;
-            ctx.body = {
-                data: 'NEVER LIKED',
-                meta: {
-                    error: '该用户未点赞过',
-                    status: 400
-                }
-            };
+            tools.setCtxData(ctx, 400, { data: 'NEVER LIKED', msg: '该用户未点赞过' });
             return;
         }
         
@@ -257,23 +160,9 @@ router.post('/unlike', passport.authenticate('jwt', { session: false }), async c
             { _id: queryId },
             { $set: post },
             { new: true, useFindAndModify: false });
-        ctx.status = 200;
-        ctx.body = {
-            data: postUpdate,
-            meta: {
-                msg: '更新成功',
-                status: 200
-            }
-        };
+        tools.setCtxData(ctx, 200, { data: postUpdate, msg: '更新成功' });
     } else {
-        ctx.status = 404;
-        ctx.body = {
-            data: 'NOT FOUND',
-            meta: {
-                error: '该用户没有个人信息',
-                status: 404
-            }
-        };
+        tools.setCtxData(ctx, 404, { data: 'search error', msg: '该用户没有个人信息' });
     }
 });
 
@@ -296,14 +185,7 @@ router.post('/comment', passport.authenticate('jwt', { session: false }), async 
         { new: true, useFindAndModify: false }
     );
     
-    ctx.status = 200;
-    ctx.body = {
-        data: postUpdate,
-        meta: {
-            msg: '更新成功',
-            status: 200
-        }
-    };
+    tools.setCtxData(ctx, 200, { data: postUpdate, msg: '更新成功' });
 });
 
 /**
@@ -328,23 +210,9 @@ router.delete('/comment', passport.authenticate('jwt', { session: false }), asyn
             { new: true, useFindAndModify: false }
         );
         
-        ctx.status = 200;
-        ctx.body = {
-            data: '删除成功',
-            meta: {
-                msg: postUpdate,
-                status: 200
-            }
-        };
+        tools.setCtxData(ctx, 200, { data: postUpdate, msg: '删除成功' });
     } else {
-        ctx.status = 404;
-        ctx.body = {
-            data: 'COMMENT NOT FOUND',
-            meta: {
-                error: '该评论不存在',
-                status: 404
-            }
-        };
+        tools.setCtxData(ctx, 404, { data: 'COMMENT NOT FOUND', msg: '该评论不存在' });
     }
 });
 

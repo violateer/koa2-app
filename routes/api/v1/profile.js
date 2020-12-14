@@ -122,6 +122,7 @@ router.post('/experience', passport.authenticate('jwt', { session: false }), asy
     }
     
     const experience = [];
+    // const profileFields = { experience: [] };
     const profile = await Profile.find({ user: id });
     if (profile.length > 0) {
         const newExp = {
@@ -131,13 +132,15 @@ router.post('/experience', passport.authenticate('jwt', { session: false }), asy
         experience.unshift(newExp);
         const profileUpdate = await Profile.updateOne(
             { user: id },
-            { $push: experience },
+            { $push: { experience } },
             { sort: '1' }
         );
         
         if (profileUpdate.ok === 1) {
             const newProfile = await Profile.find({ user: id }).populate('user', ['name', 'avatar']);
             tools.setCtxData(ctx, 200, { data: newProfile, msg: '更新成功' });
+        } else {
+            tools.setCtxData(ctx, 500, { data: 'server error', msg: '服务器错误' });
         }
     } else {
         errs.profile = '没有该用户的信息';
@@ -157,14 +160,7 @@ router.post('/education', passport.authenticate('jwt', { session: false }), asyn
     
     // 验证
     if (!isValid) {
-        ctx.status = 400;
-        ctx.body = {
-            data: 'error',
-            meta: {
-                error: errs,
-                status: 400
-            }
-        };
+        tools.setCtxData(ctx, 400, { data: 'validate error', msg: '格式验证错误', errs });
         return;
     }
     
@@ -182,26 +178,10 @@ router.post('/education', passport.authenticate('jwt', { session: false }), asyn
         
         if (profileUpdate.ok === 1) {
             const newProfile = await Profile.find({ user: id }).populate('user', ['name', 'avatar']);
-            
-            ctx.status = 200;
-            ctx.body = {
-                data: newProfile,
-                meta: {
-                    msg: '更新成功',
-                    status: 200
-                }
-            };
+            tools.setCtxData(ctx, 200, { data: newProfile, msg: '更新成功' });
         }
     } else {
-        errs.profile = '没有该用户的信息';
-        ctx.status = 404;
-        ctx.body = {
-            data: 'error',
-            meta: {
-                error: errs,
-                status: 404
-            }
-        };
+        tools.setCtxData(ctx, 404, { data: 'search error', msg: '没有该用户的信息' });
     }
 });
 
@@ -228,24 +208,9 @@ router.delete('/experience', passport.authenticate('jwt', { session: false }), a
             { $set: profile[0] },
             { new: true, useFindAndModify: false }
         );
-        
-        ctx.status = 200;
-        ctx.body = {
-            data: profileUpdate,
-            meta: {
-                msg: '删除成功',
-                status: 200
-            }
-        };
+        tools.setCtxData(ctx, 200, { data: profileUpdate, msg: '删除成功' });
     } else {
-        ctx.status = 404;
-        ctx.body = {
-            data: 'error',
-            meta: {
-                error: '没有任何数据',
-                status: 404
-            }
-        };
+        tools.setCtxData(ctx, 404, { data: 'search error', msg: '该用户没有填写工作经验' });
     }
 });
 
@@ -272,24 +237,9 @@ router.delete('/education', passport.authenticate('jwt', { session: false }), as
             { $set: profile[0] },
             { new: true, useFindAndModify: false }
         );
-        
-        ctx.status = 200;
-        ctx.body = {
-            data: profileUpdate,
-            meta: {
-                msg: '删除成功',
-                status: 200
-            }
-        };
+        tools.setCtxData(ctx, 200, { data: profileUpdate, msg: '删除成功' });
     } else {
-        ctx.status = 404;
-        ctx.body = {
-            data: 'error',
-            meta: {
-                error: '没有任何数据',
-                status: 404
-            }
-        };
+        tools.setCtxData(ctx, 404, { data: 'search error', msg: '该用户没有填写教育经历' });
     }
 });
 
@@ -304,33 +254,12 @@ router.delete('/', passport.authenticate('jwt', { session: false }), async ctx =
     if (profile.ok === 1) {
         const user = await User.deleteOne({ _id: id });
         if (user.ok === 1) {
-            ctx.status = 200;
-            ctx.body = {
-                data: 'success',
-                meta: {
-                    msg: '删除成功',
-                    status: 200
-                }
-            };
+            tools.setCtxData(ctx, 200, { data: 'delete success', msg: '删除成功' });
         } else {
-            ctx.status = 404;
-            ctx.body = {
-                data: 'NOT FOUND',
-                meta: {
-                    error: '没有找到该用户',
-                    status: 404
-                }
-            };
+            tools.setCtxData(ctx, 404, { data: 'search error', msg: '没有找到该用户' });
         }
     } else {
-        ctx.status = 404;
-        ctx.body = {
-            data: 'NOT FOUND',
-            meta: {
-                error: '该用户没有任何信息',
-                status: 404
-            }
-        };
+        tools.setCtxData(ctx, 404, { data: 'search error', msg: '该用户没有任何信息' });
     }
 });
 

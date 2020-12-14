@@ -41,11 +41,11 @@ const ProfileSchema = new Schema({
     experience: [
         {
             current: {
-                type: Boolean,
-                default: true
+                type: Boolean
             },
             company: {
-                type: String
+                type: String,
+                default: true
             },
             title: {
                 type: String,
@@ -81,7 +81,8 @@ const ProfileSchema = new Schema({
                 required: true
             },
             fieldofstudy: {
-                type: String
+                type: String,
+                required: true
             },
             description: {
                 type: String
