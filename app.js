@@ -5,6 +5,7 @@ import serverIp from './config/serverIp';
 // 路由接口
 import users from './routes/api/v1/users';
 import profile from './routes/api/v1/profile';
+import posts from './routes/api/v1/posts';
 
 import bodyParser from 'koa-bodyparser';
 import passport from 'koa-passport';
@@ -34,6 +35,7 @@ mongoose
 // 配置路由地址
 router.use('/api/v1/users', users);
 router.use('/api/v1/profile', profile);
+router.use('/api/v1/posts', posts);
 
 // 配置路由
 app.use(router.routes()).use(router.allowedMethods());

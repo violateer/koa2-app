@@ -6,9 +6,6 @@ const validateProfileInput = data => {
     const errs = {};
     
     data = tools.initData(data, { handle: true, status: true, skills: true });
-    // data.handle = !isEmpty(data.handle) ? data.handle : '';
-    // data.status = !isEmpty(data.status) ? data.status : '';
-    // data.skills = !isEmpty(data.skills) ? data.skills : '';
     
     if (Validator.isEmpty(data.handle)) {
         errs.handle = 'handle不能为空';
