@@ -25,7 +25,7 @@ router.get('/test', async ctx => {
 
 /**
  * @route Get api/v1/profile
- * @desc 个人信息接口地址
+ * @desc 查询个人信息接口地址
  * @access 接口是私有的
  */
 router.get('/', passport.authenticate('jwt', { session: false }), async ctx => {
@@ -34,23 +34,9 @@ router.get('/', passport.authenticate('jwt', { session: false }), async ctx => {
     /** @type {Object[]} profile */
     const profile = await Profile.find({ user: id }).populate('user', ['username', 'avatar']);
     if (profile.length > 0) {
-        ctx.status = 200;
-        ctx.body = {
-            data: profile,
-            meta: {
-                msg: '查询成功',
-                status: 200
-            }
-        };
+        tools.setCtxData(ctx, 200, { data: profile, msg: '查询成功' });
     } else {
-        ctx.status = 404;
-        ctx.body = {
-            data: 'NOT FOUND',
-            meta: {
-                error: '该用户没有任何相关信息',
-                status: 404
-            }
-        };
+        tools.setCtxData(ctx, 404, { data: 'search error', msg: '该用户没有任何相关信息' });
     }
 });
 
@@ -65,14 +51,7 @@ router.post('/', passport.authenticate('jwt', { session: false }), async ctx => 
     const { errs, isValid } = validateProfileInput(body);
     // 验证
     if (!isValid) {
-        ctx.status = 400;
-        ctx.body = {
-            data: 'error',
-            meta: {
-                error: errs,
-                status: 400
-            }
-        };
+        tools.setCtxData(ctx, 400, { data: 'validate error', msg: '格式验证错误', errs });
         return;
     }
     
@@ -89,25 +68,11 @@ router.post('/', passport.authenticate('jwt', { session: false }), async ctx => 
             { $set: profileFields },
             { new: true, useFindAndModify: false }
         );
-        ctx.status = 200;
-        ctx.body = {
-            data: profileUpdate,
-            meta: {
-                msg: '更新成功',
-                status: 200
-            }
-        };
+        tools.setCtxData(ctx, 200, { data: profileUpdate, msg: '更新成功' });
     } else {
         // 添加
         await new Profile(profileFields).save().then(profile => {
-            ctx.status = 200;
-            ctx.body = {
-                data: profile,
-                meta: {
-                    msg: '添加成功',
-                    status: 200
-                }
-            };
+            tools.setCtxData(ctx, 200, { data: profile, msg: '添加成功' });
         });
     }
 });
@@ -117,19 +82,19 @@ router.post('/', passport.authenticate('jwt', { session: false }), async ctx => 
  * @desc 通过handle获取个人信息接口地址
  * @access 接口是公开的
  */
-router.get('/handle', async ctx => {
-    const { handle } = ctx.query;
-    await tools.judgeFindResultAndReturn(Profile, ctx, { handle });
-});
+// router.get('/handle', async ctx => {
+//     const { handle } = ctx.query;
+//     await tools.judgeFindResultAndReturn(Profile, ctx, { handle });
+// });
 
 /**
- * @route Get api/v1/profile/user?user_id=5fd4ad7df91a1616dc9d9798
- * @desc 通过user_id获取个人信息接口地址
+ * @route Get api/v1/profile/user?profile_id=5fd4ad7df91a1616dc9d9798
+ * @desc 通过profile_id获取个人信息接口地址
  * @access 接口是公开的
  */
 router.get('/user', async ctx => {
-    const { user_id } = ctx.query;
-    await tools.judgeFindResultAndReturn(Profile, ctx, { _id: user_id });
+    const { profile_id } = ctx.query;
+    await tools.judgeFindResultAndReturn(Profile, ctx, { _id: profile_id });
 });
 
 /**
@@ -150,17 +115,9 @@ router.post('/experience', passport.authenticate('jwt', { session: false }), asy
     const { id } = ctx.state.user;
     const { title, current, company, location, description, from, to } = ctx.request.body;
     const { errs, isValid } = validateExperienceInput(ctx.request.body);
-    
     // 验证
     if (!isValid) {
-        ctx.status = 400;
-        ctx.body = {
-            data: 'error',
-            meta: {
-                error: errs,
-                status: 400
-            }
-        };
+        tools.setCtxData(ctx, 400, { data: 'validate error', msg: '格式验证错误', errs });
         return;
     }
     
@@ -174,32 +131,17 @@ router.post('/experience', passport.authenticate('jwt', { session: false }), asy
         experience.unshift(newExp);
         const profileUpdate = await Profile.updateOne(
             { user: id },
-            { $push: { experience } },
+            { $push: experience },
             { sort: '1' }
         );
         
         if (profileUpdate.ok === 1) {
             const newProfile = await Profile.find({ user: id }).populate('user', ['name', 'avatar']);
-            
-            ctx.status = 200;
-            ctx.body = {
-                data: newProfile,
-                meta: {
-                    msg: '更新成功',
-                    status: 200
-                }
-            };
+            tools.setCtxData(ctx, 200, { data: newProfile, msg: '更新成功' });
         }
     } else {
         errs.profile = '没有该用户的信息';
-        ctx.status = 404;
-        ctx.body = {
-            data: 'error',
-            meta: {
-                error: errs,
-                status: 404
-            }
-        };
+        tools.setCtxData(ctx, 404, { data: 'search error', msg: '没有该用户的信息', errs });
     }
 });
 

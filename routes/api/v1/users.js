@@ -33,14 +33,7 @@ router.post('/register', async ctx => {
     // 验证
     const { errs, isValid } = validateRegisterInput(ctx.request.body);
     if (!isValid) {
-        ctx.status = 400;
-        ctx.body = {
-            data: 'error',
-            meta: {
-                error: errs,
-                status: 400
-            }
-        };
+        tools.setCtxData(ctx, 400, { data: 'validate error', msg: '格式验证错误', errs });
         return;
     }
     
@@ -49,61 +42,29 @@ router.post('/register', async ctx => {
     /** @type {string[]} findResultUsername */
     const findResultUsername = await User.find({ username });
     if (findResultEmail.length > 0) {
-        ctx.status = 422;
-        ctx.body = {
-            data: 'error',
-            meta: {
-                error: {
-                    email: '邮箱已被占用'
-                },
-                status: 422
-            }
-        };
-    } else if (findResultUsername.length > 0) {
-        ctx.status = 422;
-        ctx.body = {
-            data: 'error',
-            meta: {
-                error: {
-                    email: '用户名已被占用'
-                },
-                status: 422
-            }
-        };
-    } else {
-        const avatar = gravatar.url(email, { s: '200', r: 'pg', d: 'mm' });
-        const newUser = new User({
-            username,
-            password: tools.enbcrypt(password),
-            email,
-            avatar
-        });
-        
-        // 存储到数据库
-        await newUser.save()
-                     .then(user => {
-                         ctx.status = 200;
-                         ctx.body = {
-                             data: user,
-                             meta: {
-                                 msg: '注册成功',
-                                 status: 200
-                             }
-                         };
-                     })
-                     .catch(() => {
-                         ctx.status = 500;
-                         ctx.body = {
-                             data: 'error',
-                             meta: {
-                                 msg: {
-                                     error: '未知错误'
-                                 },
-                                 status: 500
-                             }
-                         };
-                     });
+        tools.setCtxData(ctx, 422, { data: 'email error', msg: '邮箱已被占用' });
+        return;
     }
+    if (findResultUsername.length > 0) {
+        tools.setCtxData(ctx, 422, { data: 'username error', msg: '用户名已被占用' });
+        return;
+    }
+    const avatar = gravatar.url(email, { s: '200', r: 'pg', d: 'mm' });
+    const newUser = new User({
+        username,
+        password: tools.enbcrypt(password),
+        email,
+        avatar
+    });
+    
+    // 存储到数据库
+    await newUser.save()
+                 .then(user => {
+                     tools.setCtxData(ctx, 200, { data: user, msg: '注册成功' });
+                 })
+                 .catch(err => {
+                     tools.setCtxData(ctx, 500, { data: err, msg: '服务器错误' });
+                 });
 });
 
 /**
@@ -117,14 +78,7 @@ router.post('/login', async ctx => {
     // 验证
     const { errs, isValid } = validateLoginInput(ctx.request.body);
     if (!isValid) {
-        ctx.status = 400;
-        ctx.body = {
-            data: 'error',
-            meta: {
-                error: errs,
-                status: 400
-            }
-        };
+        tools.setCtxData(ctx, 400, { data: 'validate error', msg: '格式验证错误', errs });
         return;
     }
     
@@ -134,16 +88,7 @@ router.post('/login', async ctx => {
     const findResult = await User.find(searchQuery);
     const user = findResult[0];
     if (findResult.length === 0) {
-        ctx.status = 404;
-        ctx.body = {
-            data: 'error',
-            meta: {
-                msg: {
-                    error: '未查询到用户'
-                },
-                status: 404
-            }
-        };
+        tools.setCtxData(ctx, 404, { data: 'search error', msg: '未查询到用户' });
     } else {
         // 验证密码
         const result = tools.checkPassword(password, user.password);
@@ -154,33 +99,17 @@ router.post('/login', async ctx => {
                 name: user.username,
                 avatar: user.avatar
             };
-            const token = jwt.sign(payLoad, secretOrKey, { expiresIn: 3600 * 24 });
-            
-            ctx.status = 200;
-            ctx.body = {
-                data: {
-                    id: user._id,
-                    username: user.username,
-                    email: user.email,
-                    avatar: user.avatar,
-                    token: 'Bearer ' + token
-                },
-                meta: {
-                    msg: '登录成功',
-                    status: 200
-                }
+            const token = jwt.sign(payLoad, secretOrKey, { expiresIn: 3600 * 24 * 15 });
+            const dataForm = {
+                id: user._id,
+                username: user.username,
+                email: user.email,
+                avatar: user.avatar,
+                token: 'Bearer ' + token
             };
+            tools.setCtxData(ctx, 200, { data: dataForm, msg: '登录成功' });
         } else {
-            ctx.status = 403;
-            ctx.body = {
-                data: 'error',
-                meta: {
-                    msg: {
-                        error: '密码错误'
-                    },
-                    status: 403
-                }
-            };
+            tools.setCtxData(ctx, 403, { data: 'validate error', msg: '密码错误' });
         }
     }
 });
@@ -192,14 +121,8 @@ router.post('/login', async ctx => {
  */
 router.get('/current', passport.authenticate('jwt', { session: false }), async ctx => {
     const { _id, username, email, avatar } = ctx.state.user;
-    ctx.status = 200;
-    ctx.body = {
-        data: { _id, username, email, avatar },
-        meta: {
-            msg: '验证成功',
-            status: 200
-        }
-    };
+    const dataForm = { _id, username, email, avatar };
+    tools.setCtxData(ctx, 200, { data: dataForm, msg: '验证成功' });
 });
 
 export default router.routes();

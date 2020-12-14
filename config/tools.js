@@ -61,7 +61,6 @@ const tools = {
     
     // 判断查询结果并返回数据，暂时只支持Profile查询
     async judgeFindResultAndReturn (Model, ctx, filterOptions) {
-        const errs = {};
         const errMessage = filterOptions ? '未找到该用户信息' : '没有任何用户信息';
         /** @type {Object[]} findResult */
         let findResult;
@@ -73,25 +72,27 @@ const tools = {
                 break;
         }
         if (findResult.length === 0) {
-            errs.profile = errMessage;
-            ctx.status = 404;
-            ctx.body = {
-                data: 'error',
-                meta: {
-                    error: errs,
-                    status: 404
-                }
-            };
+            this.setCtxData(ctx, 404, { data: 'search error', msg: errMessage });
         } else {
-            ctx.status = 200;
-            ctx.body = {
-                data: findResult,
-                meta: {
-                    msg: '查询成功',
-                    status: 200
-                }
-            };
+            this.setCtxData(ctx, 200, { data: findResult, msg: '查询成功' });
         }
+    },
+    
+    // 设置返回数据
+    // query: {data, msg[, errs]}
+    setCtxData (ctx, status, query) {
+        const { data, msg, errs } = query;
+        const errFlag = status >= 200 && status < 300 ? false : true;
+        const msgFlag = errFlag ? 'error' : 'msg';
+        const dataMsg = errs ? errs : data;
+        ctx.status = status;
+        ctx.body = {
+            data: dataMsg,
+            meta: {
+                [msgFlag]: msg,
+                status
+            }
+        };
     }
 };
 
