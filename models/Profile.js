@@ -97,6 +97,10 @@ const ProfileSchema = new Schema({
             },
             to: {
                 type: String
+            },
+            eduId: {
+                type: String || Number,
+                required: true
             }
         }
     ],
