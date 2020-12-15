@@ -8,7 +8,6 @@ import User from '../../../models/User';
 import validateProfileInput from '../../../validation/profile';
 import validateExperienceInput from '../../../validation/experience';
 import validateEducationInput from '../../../validation/education';
-import login from '../../../validation/login';
 
 const router = new Router();
 
@@ -121,7 +120,9 @@ router.post('/experience', passport.authenticate('jwt', { session: false }), asy
         tools.setCtxData(ctx, 400, { data: 'validate error', msg: '格式验证错误', errs });
         return;
     }
-    
+    /**
+     * @type {Object} profile
+     * */
     const profile = await Profile.find({ user: id });
     
     // 判断已存在经历
@@ -145,6 +146,9 @@ router.post('/experience', passport.authenticate('jwt', { session: false }), asy
         const newExp = ctx.request.body;
         const experience = [];
         experience.unshift(newExp);
+        /**
+         * @type {Object} profileUpdate
+         * */
         const profileUpdate = await Profile.updateOne(
             { user: id },
             { $push: { experience } },
@@ -178,7 +182,9 @@ router.post('/education', passport.authenticate('jwt', { session: false }), asyn
         tools.setCtxData(ctx, 400, { data: 'validate error', msg: '格式验证错误', errs });
         return;
     }
-    
+    /**
+     * @type {Object} profile
+     * */
     const profile = await Profile.find({ user: id });
     
     // 判断已存在经历
@@ -202,6 +208,9 @@ router.post('/education', passport.authenticate('jwt', { session: false }), asyn
         const newEdu = ctx.request.body;
         const education = [];
         education.unshift(newEdu);
+        /**
+         * @type {Object} profileUpdate
+         * */
         const profileUpdate = await Profile.updateOne(
             { user: id },
             { $push: { education } },
@@ -290,8 +299,14 @@ router.delete('/education', passport.authenticate('jwt', { session: false }), as
  */
 router.delete('/', passport.authenticate('jwt', { session: false }), async ctx => {
     const { id } = ctx.state.user;
+    /**
+     * @type {Object} profile
+     * */
     const profile = await Profile.deleteOne({ user: id });
     if (profile.ok === 1) {
+        /**
+         * @type {Object} user
+         * */
         const user = await User.deleteOne({ _id: id });
         if (user.ok === 1) {
             tools.setCtxData(ctx, 200, { data: 'delete success', msg: '删除成功' });
