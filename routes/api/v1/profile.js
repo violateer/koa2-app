@@ -19,7 +19,7 @@ const router = new Router();
 router.get('/test', async ctx => {
     ctx.status = 200;
     ctx.body = {
-        msg: 'profile works...'
+        msg: 'profile works....'
     };
 });
 

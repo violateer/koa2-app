@@ -49,7 +49,7 @@ router.post('/', passport.authenticate('jwt', { session: false }), async ctx => 
 
 /**
  * @route Get api/v1/posts/all
- * @desc 获取所有留言接口地址
+ * @desc 获取指定用户所有留言接口地址
  * @access 接口是公开的
  */
 router.get('/all', async ctx => {
@@ -127,7 +127,7 @@ router.post('/like', passport.authenticate('jwt', { session: false }), async ctx
             { _id: queryId },
             { $set: post },
             { new: true, useFindAndModify: false });
-        tools.setCtxData(ctx, 200, { data: postUpdate, msg: '更新成功' });
+        tools.setCtxData(ctx, 200, { data: postUpdate, msg: '点赞成功' });
     } else {
         tools.setCtxData(ctx, 404, { data: 'search error', msg: '该用户没有个人信息' });
     }
@@ -160,7 +160,7 @@ router.post('/unlike', passport.authenticate('jwt', { session: false }), async c
             { _id: queryId },
             { $set: post },
             { new: true, useFindAndModify: false });
-        tools.setCtxData(ctx, 200, { data: postUpdate, msg: '更新成功' });
+        tools.setCtxData(ctx, 200, { data: postUpdate, msg: '取消点赞成功' });
     } else {
         tools.setCtxData(ctx, 404, { data: 'search error', msg: '该用户没有个人信息' });
     }
@@ -173,7 +173,6 @@ router.post('/unlike', passport.authenticate('jwt', { session: false }), async c
  */
 router.post('/comment', passport.authenticate('jwt', { session: false }), async ctx => {
     const { id: queryId } = ctx.query;
-    const { id: searchId } = ctx.state.user;
     const { text, name, avatar, user } = ctx.request.body;
     const post = await Post.findById(queryId);
     const newComment = { text, name, avatar, user };
@@ -185,7 +184,7 @@ router.post('/comment', passport.authenticate('jwt', { session: false }), async 
         { new: true, useFindAndModify: false }
     );
     
-    tools.setCtxData(ctx, 200, { data: postUpdate, msg: '更新成功' });
+    tools.setCtxData(ctx, 200, { data: postUpdate, msg: '评论成功' });
 });
 
 /**
@@ -195,7 +194,6 @@ router.post('/comment', passport.authenticate('jwt', { session: false }), async 
  */
 router.delete('/comment', passport.authenticate('jwt', { session: false }), async ctx => {
     const { id: queryId, comment_id } = ctx.query;
-    const { id: searchId } = ctx.state.user;
     
     const post = await Post.findById(queryId);
     const isComment = post.comments.filter(comment => comment._id.toString() === comment_id).length !== 0;

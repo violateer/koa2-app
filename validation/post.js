@@ -15,8 +15,6 @@ const validatePostInput = data => {
     
     if (Validator.isEmpty(data.username)) {
         errs.username = 'username不能为空';
-    } else if (!Validator.isLength(data.text, { min: 4, max: 20 })) {
-        errs.username = 'username的长度只能为4~20位';
     }
     
     return {
