@@ -113,7 +113,7 @@ router.get('/all', async ctx => {
  */
 router.post('/experience', passport.authenticate('jwt', { session: false }), async ctx => {
     const { id } = ctx.state.user;
-    const { title, current, company, location, description, from, to } = ctx.request.body;
+    const { title, current, company, location, description, from, to, expId } = ctx.request.body;
     const { errs, isValid } = validateExperienceInput(ctx.request.body);
     // 验证
     if (!isValid) {
@@ -122,11 +122,18 @@ router.post('/experience', passport.authenticate('jwt', { session: false }), asy
     }
     
     const experience = [];
-    // const profileFields = { experience: [] };
     const profile = await Profile.find({ user: id });
+    const existExpId = profile[0].experience.map(existExperience => existExperience.expId);
+    
+    // 判断已存在经历
+    if (existExpId.indexOf(expId) !== -1) {
+        tools.setCtxData(ctx, 400, { data: 'exist error', msg: '不能重复创建同一id的工作经历' });
+        return;
+    }
+    
     if (profile.length > 0) {
         const newExp = {
-            title, current, company, location, description, from, to
+            title, current, company, location, description, from, to, expId
         };
         
         experience.unshift(newExp);
@@ -137,7 +144,7 @@ router.post('/experience', passport.authenticate('jwt', { session: false }), asy
         );
         
         if (profileUpdate.ok === 1) {
-            const newProfile = await Profile.find({ user: id }).populate('user', ['name', 'avatar']);
+            const newProfile = await Profile.find({ user: id }).populate('user', ['username', 'avatar']);
             tools.setCtxData(ctx, 200, { data: newProfile, msg: '更新成功' });
         } else {
             tools.setCtxData(ctx, 500, { data: 'server error', msg: '服务器错误' });

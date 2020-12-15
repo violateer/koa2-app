@@ -66,7 +66,7 @@ const tools = {
         let findResult;
         switch (Model) {
             case Profile:
-                findResult = await Model.find(filterOptions).populate('user', ['name', 'avatar']);
+                findResult = await Model.find(filterOptions).populate('user', ['username', 'avatar']);
                 break;
             default:
                 break;

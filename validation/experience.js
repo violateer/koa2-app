@@ -5,7 +5,7 @@ import tools from '../config/tools';
 const validateExperienceInput = data => {
     const errs = {};
     
-    data = tools.initData(data, { title: true, company: true, from: true });
+    data = tools.initData(data, { title: true, company: true, from: true, expId: true });
     
     if (Validator.isEmpty(data.title)) {
         errs.title = 'title不能为空';
@@ -17,6 +17,10 @@ const validateExperienceInput = data => {
     
     if (Validator.isEmpty(data.from)) {
         errs.from = 'from不能为空';
+    }
+    
+    if (Validator.isEmpty(data.expId)) {
+        errs.expId = 'expId不能为空';
     }
     
     return {
