@@ -215,6 +215,10 @@ router.delete('/experience', passport.authenticate('jwt', { session: false }), a
     if (profile[0].experience.length > 0) {
         // 找元素下标
         const removeIndex = profile[0].experience.map(item => item.id).indexOf(exp_id);
+        if (removeIndex === -1) {
+            tools.setCtxData(ctx, 404, { data: 'search error', msg: '未找到该条经历' });
+            return;
+        }
         // 删除
         profile[0].experience.splice(removeIndex, 1);
         // 更新数据库
@@ -244,6 +248,10 @@ router.delete('/education', passport.authenticate('jwt', { session: false }), as
     if (profile[0].education.length > 0) {
         // 找元素下标
         const removeIndex = profile[0].education.map(item => item.id).indexOf(edu_id);
+        if (removeIndex === -1) {
+            tools.setCtxData(ctx, 404, { data: 'search error', msg: '未找到该条经历' });
+            return;
+        }
         // 删除
         profile[0].education.splice(removeIndex, 1);
         // 更新数据库
