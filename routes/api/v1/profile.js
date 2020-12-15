@@ -8,6 +8,7 @@ import User from '../../../models/User';
 import validateProfileInput from '../../../validation/profile';
 import validateExperienceInput from '../../../validation/experience';
 import validateEducationInput from '../../../validation/education';
+import login from '../../../validation/login';
 
 const router = new Router();
 
@@ -113,7 +114,7 @@ router.get('/all', async ctx => {
  */
 router.post('/experience', passport.authenticate('jwt', { session: false }), async ctx => {
     const { id } = ctx.state.user;
-    const { title, current, company, location, description, from, to, expId } = ctx.request.body;
+    const { expId } = ctx.request.body;
     const { errs, isValid } = validateExperienceInput(ctx.request.body);
     // 验证
     if (!isValid) {
@@ -121,21 +122,28 @@ router.post('/experience', passport.authenticate('jwt', { session: false }), asy
         return;
     }
     
-    const experience = [];
     const profile = await Profile.find({ user: id });
-    const existExpId = profile[0].experience.map(existExperience => existExperience.expId);
     
     // 判断已存在经历
-    if (existExpId.indexOf(expId) !== -1) {
-        tools.setCtxData(ctx, 400, { data: 'exist error', msg: '不能重复创建同一id的工作经历' });
+    const existExpIds = profile[0].experience.map(existExperience => existExperience.expId);
+    const expIndex = existExpIds.indexOf(expId);
+    if (expIndex !== -1) {
+        // tools.setCtxData(ctx, 400, { data: 'exist error', msg: '不能重复创建同一id的工作经历' });
+        profile[0].experience[expIndex] = ctx.request.body;
+        const experience = profile[0].experience;
+        // 更新
+        const profileUpdate = await Profile.findOneAndUpdate(
+            { user: id },
+            { $set: { experience } },
+            { new: true, useFindAndModify: false }
+        );
+        tools.setCtxData(ctx, 200, { data: profileUpdate, msg: '更新成功' });
         return;
     }
     
     if (profile.length > 0) {
-        const newExp = {
-            title, current, company, location, description, from, to, expId
-        };
-        
+        const newExp = ctx.request.body;
+        const experience = [];
         experience.unshift(newExp);
         const profileUpdate = await Profile.updateOne(
             { user: id },
@@ -145,7 +153,7 @@ router.post('/experience', passport.authenticate('jwt', { session: false }), asy
         
         if (profileUpdate.ok === 1) {
             const newProfile = await Profile.find({ user: id }).populate('user', ['username', 'avatar']);
-            tools.setCtxData(ctx, 200, { data: newProfile, msg: '更新成功' });
+            tools.setCtxData(ctx, 200, { data: newProfile, msg: '添加成功' });
         } else {
             tools.setCtxData(ctx, 500, { data: 'server error', msg: '服务器错误' });
         }
@@ -162,7 +170,7 @@ router.post('/experience', passport.authenticate('jwt', { session: false }), asy
  */
 router.post('/education', passport.authenticate('jwt', { session: false }), async ctx => {
     const { id } = ctx.state.user;
-    const { school, current, degree, fieldofstudy, description, from, to, eduId } = ctx.request.body;
+    const { eduId } = ctx.request.body;
     const { errs, isValid } = validateEducationInput(ctx.request.body);
     
     // 验证
@@ -171,19 +179,28 @@ router.post('/education', passport.authenticate('jwt', { session: false }), asyn
         return;
     }
     
-    const education = [];
     const profile = await Profile.find({ user: id });
-    const existEduId = profile[0].education.map(existEducation => existEducation.eduId);
     
     // 判断已存在经历
-    if (existEduId.indexOf(eduId) !== -1) {
-        tools.setCtxData(ctx, 400, { data: 'exist error', msg: '不能重复创建同一id的教育经历' });
+    const existEduId = profile[0].education.map(existEducation => existEducation.eduId);
+    const eduIndex = existEduId.indexOf(eduId);
+    if (eduIndex !== -1) {
+        // tools.setCtxData(ctx, 400, { data: 'exist error', msg: '不能重复创建同一id的教育经历' });
+        profile[0].education[eduIndex] = ctx.request.body;
+        const education = profile[0].education;
+        // 更新
+        const profileUpdate = await Profile.findOneAndUpdate(
+            { user: id },
+            { $set: { education } },
+            { new: true, useFindAndModify: false }
+        );
+        tools.setCtxData(ctx, 200, { data: profileUpdate, msg: '更新成功' });
         return;
     }
     
     if (profile.length > 0) {
-        const newEdu = { school, current, degree, fieldofstudy, description, from, to, eduId };
-        
+        const newEdu = ctx.request.body;
+        const education = [];
         education.unshift(newEdu);
         const profileUpdate = await Profile.updateOne(
             { user: id },
@@ -193,7 +210,7 @@ router.post('/education', passport.authenticate('jwt', { session: false }), asyn
         
         if (profileUpdate.ok === 1) {
             const newProfile = await Profile.find({ user: id }).populate('user', ['username', 'avatar']);
-            tools.setCtxData(ctx, 200, { data: newProfile, msg: '更新成功' });
+            tools.setCtxData(ctx, 200, { data: newProfile, msg: '添加成功' });
         }
     } else {
         tools.setCtxData(ctx, 404, { data: 'search error', msg: '没有该用户的信息' });
